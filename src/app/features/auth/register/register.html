@@ -1,0 +1,193 @@
+<div class="register-container">
+  <div class="row justify-content-center align-items-center min-vh-100 m-0">
+    <div class="col-11 col-sm-10 col-md-8 col-lg-6">
+      <div class="card shadow-lg border-0 animate__animated animate__fadeIn">
+        <div class="card-body p-5">
+          <!-- Logo y título -->
+          <div class="text-center mb-4">
+            <img src="assets/logo.svg" alt="Logo" class="logo mb-3" width="80">
+            <h2 class="fw-bold text-primary">Crear Cuenta</h2>
+            <p class="text-muted">Completa tus datos para registrarte</p>
+          </div>
+
+          <!-- Formulario -->
+          <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+            <div class="row">
+              <!-- Nombre -->
+              <div class="col-md-6 mb-3">
+                <label for="nombre" class="form-label fw-semibold">
+                  <i class="bi bi-person me-1"></i>Nombre
+                </label>
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  id="nombre" 
+                  formControlName="nombre"
+                  [class.is-invalid]="nombre?.invalid && nombre?.touched"
+                  placeholder="Juan">
+                <div class="invalid-feedback">
+                  {{ getErrorMessage('nombre') }}
+                </div>
+              </div>
+
+              <!-- Apellido -->
+              <div class="col-md-6 mb-3">
+                <label for="apellido" class="form-label fw-semibold">
+                  <i class="bi bi-person me-1"></i>Apellido
+                </label>
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  id="apellido" 
+                  formControlName="apellido"
+                  [class.is-invalid]="apellido?.invalid && apellido?.touched"
+                  placeholder="Pérez">
+                <div class="invalid-feedback">
+                  {{ getErrorMessage('apellido') }}
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <!-- Documento -->
+              <div class="col-md-6 mb-3">
+                <label for="documento" class="form-label fw-semibold">
+                  <i class="bi bi-card-text me-1"></i>Documento
+                </label>
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  id="documento" 
+                  formControlName="documento"
+                  [class.is-invalid]="documento?.invalid && documento?.touched"
+                  placeholder="123456789">
+                <div class="invalid-feedback">
+                  {{ getErrorMessage('documento') }}
+                </div>
+              </div>
+
+              <!-- Teléfono -->
+              <div class="col-md-6 mb-3">
+                <label for="telefono" class="form-label fw-semibold">
+                  <i class="bi bi-phone me-1"></i>Teléfono
+                </label>
+                <input 
+                  type="tel" 
+                  class="form-control" 
+                  id="telefono" 
+                  formControlName="telefono"
+                  [class.is-invalid]="telefono?.invalid && telefono?.touched"
+                  placeholder="+573001234567">
+                <div class="invalid-feedback">
+                  {{ getErrorMessage('telefono') }}
+                </div>
+              </div>
+            </div>
+
+            <!-- Email -->
+            <div class="mb-3">
+              <label for="email" class="form-label fw-semibold">
+                <i class="bi bi-envelope me-1"></i>Email
+              </label>
+              <input 
+                type="email" 
+                class="form-control" 
+                id="email" 
+                formControlName="email"
+                [class.is-invalid]="email?.invalid && email?.touched"
+                placeholder="usuario@ejemplo.com">
+              <div class="invalid-feedback">
+                {{ getErrorMessage('email') }}
+              </div>
+            </div>
+
+            <div class="row">
+              <!-- Contraseña -->
+              <div class="col-md-6 mb-3">
+                <label for="password" class="form-label fw-semibold">
+                  <i class="bi bi-lock me-1"></i>Contraseña
+                </label>
+                <div class="input-group">
+                  <input 
+                    [type]="showPassword ? 'text' : 'password'" 
+                    class="form-control" 
+                    id="password" 
+                    formControlName="password"
+                    [class.is-invalid]="password?.invalid && password?.touched"
+                    placeholder="••••••••">
+                  <button 
+                    class="btn btn-outline-secondary" 
+                    type="button"
+                    (click)="togglePasswordVisibility('password')">
+                    <i [class]="showPassword ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+                  </button>
+                </div>
+                <div class="invalid-feedback d-block" *ngIf="password?.invalid && password?.touched">
+                  {{ getErrorMessage('password') }}
+                </div>
+                <small class="text-muted">
+                  Mínimo 6 caracteres, al menos una letra y un número
+                </small>
+              </div>
+
+              <!-- Confirmar Contraseña -->
+              <div class="col-md-6 mb-3">
+                <label for="confirmPassword" class="form-label fw-semibold">
+                  <i class="bi bi-lock me-1"></i>Confirmar Contraseña
+                </label>
+                <div class="input-group">
+                  <input 
+                    [type]="showConfirmPassword ? 'text' : 'password'" 
+                    class="form-control" 
+                    id="confirmPassword" 
+                    formControlName="confirmPassword"
+                    [class.is-invalid]="(confirmPassword?.invalid || registerForm.errors?.['passwordMismatch']) && confirmPassword?.touched"
+                    placeholder="••••••••">
+                  <button 
+                    class="btn btn-outline-secondary" 
+                    type="button"
+                    (click)="togglePasswordVisibility('confirm')">
+                    <i [class]="showConfirmPassword ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+                  </button>
+                </div>
+                <div class="invalid-feedback" *ngIf="registerForm.errors?.['passwordMismatch'] && confirmPassword?.touched">
+                  Las contraseñas no coinciden
+                </div>
+              </div>
+            </div>
+
+            <!-- Términos y condiciones -->
+            <div class="mb-4">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="terms" required>
+                <label class="form-check-label" for="terms">
+                  Acepto los <a href="#" class="text-primary">términos y condiciones</a> y la 
+                  <a href="#" class="text-primary">política de privacidad</a>
+                </label>
+              </div>
+            </div>
+
+            <!-- Botón de registro -->
+            <button 
+              type="submit" 
+              class="btn btn-primary w-100 mb-3" 
+              [disabled]="registerForm.invalid || loading">
+              <span *ngIf="!loading">Registrarse</span>
+              <span *ngIf="loading">
+                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                Procesando...
+              </span>
+            </button>
+
+            <!-- Enlace a login -->
+            <div class="text-center">
+              <a routerLink="/auth/login" class="text-decoration-none">
+                ¿Ya tienes cuenta? Inicia sesión
+              </a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

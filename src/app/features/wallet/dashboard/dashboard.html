@@ -1,0 +1,510 @@
+<div class="dashboard-container">
+  <!-- Navbar superior -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#">
+        <i class="bi bi-wallet2 me-2"></i>
+        Billetera Digital
+      </a>
+      
+      <div class="d-flex align-items-center">
+        <span class="text-white me-3">
+          <i class="bi bi-person-circle me-1"></i>
+          {{ currentUser?.nombre }} {{ currentUser?.apellido }}
+        </span>
+        <button class="btn btn-outline-light btn-sm" (click)="logout()">
+          <i class="bi bi-box-arrow-right"></i>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container-fluid">
+    <div class="row">
+      <!-- Sidebar -->
+      <nav class="col-md-3 col-lg-2 d-md-block bg-light sidebar">
+        <div class="position-sticky pt-3">
+          <ul class="nav flex-column">
+            <li class="nav-item">
+              <a class="nav-link" [class.active]="currentTab === 'dashboard'" (click)="setTab('dashboard')" href="#">
+                <i class="bi bi-speedometer2 me-2"></i>
+                Dashboard
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" [class.active]="currentTab === 'recharge'" (click)="setTab('recharge')" href="#">
+                <i class="bi bi-plus-circle me-2"></i>
+                Recargar
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" [class.active]="currentTab === 'payment'" (click)="setTab('payment')" href="#">
+                <i class="bi bi-send me-2"></i>
+                Pagar
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" [class.active]="currentTab === 'history'" (click)="setTab('history')" href="#">
+                <i class="bi bi-clock-history me-2"></i>
+                Historial
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" [class.active]="currentTab === 'profile'" (click)="setTab('profile')" href="#">
+                <i class="bi bi-person me-2"></i>
+                Perfil
+              </a>
+            </li>
+          </ul>
+        </div>
+      </nav>
+
+      <!-- Main content -->
+      <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+        <!-- Dashboard Tab -->
+        <div *ngIf="currentTab === 'dashboard'" class="pt-3">
+          <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+            <h1 class="h2">Dashboard</h1>
+            <div class="btn-toolbar mb-2 mb-md-0">
+              <button type="button" class="btn btn-sm btn-outline-secondary" (click)="loadBalance()">
+                <i class="bi bi-arrow-clockwise me-1"></i>
+                Actualizar
+              </button>
+            </div>
+          </div>
+
+          <!-- Balance Card -->
+          <div class="row mb-4">
+            <div class="col-12 col-xl-6">
+              <div class="card balance-card bg-primary text-white">
+                <div class="card-body">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                      <h6 class="card-subtitle mb-2 text-white-50">Saldo disponible</h6>
+                      <h2 class="card-title display-4 mb-0">
+                        <span *ngIf="!loading.balance">{{ formatCurrency(balance) }}</span>
+                        <span *ngIf="loading.balance">
+                          <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                          Cargando...
+                        </span>
+                      </h2>
+                      <p class="card-text text-white-50 mt-2">
+                        <i class="bi bi-person-badge me-1"></i>
+                        Documento: {{ currentUser?.documento }}
+                      </p>
+                    </div>
+                    <i class="bi bi-wallet2 display-1 text-white-50"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Acciones rápidas -->
+          <div class="row mb-4">
+            <div class="col-12">
+              <h5 class="mb-3">Acciones rápidas</h5>
+              <div class="d-flex gap-2">
+                <button class="btn btn-primary" (click)="setTab('recharge')">
+                  <i class="bi bi-plus-circle me-2"></i>
+                  Recargar
+                </button>
+                <button class="btn btn-success" (click)="setTab('payment')">
+                  <i class="bi bi-send me-2"></i>
+                  Pagar
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Transacciones recientes -->
+          <div class="row">
+            <div class="col-12">
+              <div class="card">
+                <div class="card-header bg-white">
+                  <h5 class="card-title mb-0">
+                    <i class="bi bi-clock-history me-2"></i>
+                    Transacciones recientes
+                  </h5>
+                </div>
+                <div class="card-body">
+                  <div *ngIf="loading.transactions" class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                      <span class="visually-hidden">Cargando...</span>
+                    </div>
+                  </div>
+
+                  <div *ngIf="!loading.transactions && recentTransactions.length === 0" class="text-center py-4 text-muted">
+                    <i class="bi bi-inbox display-4 d-block mb-3"></i>
+                    No hay transacciones recientes
+                  </div>
+
+                  <div class="list-group" *ngIf="!loading.transactions && recentTransactions.length > 0">
+                    <div *ngFor="let transaction of recentTransactions" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                      <div class="d-flex align-items-center">
+                        <div class="transaction-icon me-3" [ngClass]="getTransactionClass(transaction.tipo)">
+                          <i [class]="'bi ' + getTransactionIcon(transaction.tipo) + ' fs-4'"></i>
+                        </div>
+                        <div>
+                          <h6 class="mb-0">{{ transaction.descripcion || transaction.tipo }}</h6>
+                          <small class="text-muted">{{ transaction.fecha | date:'medium' }}</small>
+                        </div>
+                      </div>
+                      <span [ngClass]="transaction.tipo === 'PAGO' ? 'text-danger' : 'text-success'" class="fw-bold">
+                        {{ transaction.tipo === 'PAGO' ? '-' : '+' }}{{ formatCurrency(transaction.monto) }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recharge Tab -->
+        <div *ngIf="currentTab === 'recharge'" class="pt-3">
+          <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+            <h1 class="h2">Recargar Billetera</h1>
+          </div>
+
+          <div class="row justify-content-center">
+            <div class="col-12 col-md-8 col-lg-6">
+              <div class="card">
+                <div class="card-body p-4">
+                  <div class="text-center mb-4">
+                    <i class="bi bi-plus-circle display-1 text-primary"></i>
+                    <h4 class="mt-3">¿Cuánto deseas recargar?</h4>
+                  </div>
+
+                  <form [formGroup]="rechargeForm" (ngSubmit)="onRecharge()">
+                    <div class="mb-3">
+                      <label class="form-label">Documento</label>
+                      <input 
+                        type="text" 
+                        class="form-control" 
+                        formControlName="documento"
+                        [class.is-invalid]="rechargeForm.get('documento')?.invalid && rechargeForm.get('documento')?.touched">
+                      <div class="invalid-feedback">
+                        El documento es requerido
+                      </div>
+                    </div>
+
+                    <div class="mb-4">
+                      <label class="form-label">Valor a recargar</label>
+                      <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <input 
+                          type="number" 
+                          class="form-control" 
+                          formControlName="valor"
+                          [class.is-invalid]="rechargeForm.get('valor')?.invalid && rechargeForm.get('valor')?.touched"
+                          placeholder="10000">
+                      </div>
+                      
+                      <div *ngIf="rechargeForm.get('valor')?.errors && rechargeForm.get('valor')?.touched" class="text-danger small mt-1">
+                        <div *ngIf="rechargeForm.get('valor')?.errors?.['required']">
+                          El valor es requerido
+                        </div>
+                        <div *ngIf="rechargeForm.get('valor')?.errors?.['min']">
+                          Mínimo $1,000 COP
+                        </div>
+                        <div *ngIf="rechargeForm.get('valor')?.errors?.['max']">
+                          Máximo $10,000,000 COP
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Valores sugeridos -->
+                    <div class="mb-4">
+                      <label class="form-label">Valores sugeridos</label>
+                      <div class="d-flex gap-2 flex-wrap">
+                        <button type="button" class="btn btn-outline-primary" (click)="rechargeForm.patchValue({valor: 20000})">
+                          $20,000
+                        </button>
+                        <button type="button" class="btn btn-outline-primary" (click)="rechargeForm.patchValue({valor: 50000})">
+                          $50,000
+                        </button>
+                        <button type="button" class="btn btn-outline-primary" (click)="rechargeForm.patchValue({valor: 100000})">
+                          $100,000
+                        </button>
+                        <button type="button" class="btn btn-outline-primary" (click)="rechargeForm.patchValue({valor: 200000})">
+                          $200,000
+                        </button>
+                      </div>
+                    </div>
+
+                    <button 
+                      type="submit" 
+                      class="btn btn-primary w-100"
+                      [disabled]="rechargeForm.invalid || loading.recharge">
+                      <span *ngIf="!loading.recharge">
+                        <i class="bi bi-arrow-repeat me-2"></i>
+                        Recargar ahora
+                      </span>
+                      <span *ngIf="loading.recharge">
+                        <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                        Procesando...
+                      </span>
+                    </button>
+                  </form>
+
+                  <hr class="my-4">
+
+                  <div class="text-center text-muted small">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Las recargas se verán reflejadas inmediatamente en tu saldo
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Payment Tab -->
+        <div *ngIf="currentTab === 'payment'" class="pt-3">
+          <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+            <h1 class="h2">Realizar Pago</h1>
+          </div>
+
+          <div class="row">
+            <div class="col-12 col-lg-6">
+              <!-- Iniciar Pago -->
+              <div class="card mb-4">
+                <div class="card-header bg-white">
+                  <h5 class="card-title mb-0">
+                    <i class="bi bi-send me-2"></i>
+                    Datos del pago
+                  </h5>
+                </div>
+                <div class="card-body">
+                  <form [formGroup]="paymentForm" (ngSubmit)="onInitiatePayment()">
+                    <div class="mb-3">
+                      <label class="form-label">Email del destinatario</label>
+                      <input 
+                        type="email" 
+                        class="form-control" 
+                        formControlName="email"
+                        [class.is-invalid]="paymentForm.get('email')?.invalid && paymentForm.get('email')?.touched"
+                        placeholder="destinatario@email.com">
+                      <div class="invalid-feedback" *ngIf="paymentForm.get('email')?.errors?.['required']">
+                        El email es requerido
+                      </div>
+                      <div class="invalid-feedback" *ngIf="paymentForm.get('email')?.errors?.['email']">
+                        Email inválido
+                      </div>
+                    </div>
+
+                    <div class="mb-3">
+                      <label class="form-label">Documento del destinatario</label>
+                      <input 
+                        type="text" 
+                        class="form-control" 
+                        formControlName="documento"
+                        [class.is-invalid]="paymentForm.get('documento')?.invalid && paymentForm.get('documento')?.touched"
+                        placeholder="123456789">
+                      <div class="invalid-feedback">
+                        El documento es requerido
+                      </div>
+                    </div>
+
+                    <div class="mb-4">
+                      <label class="form-label">Monto a pagar</label>
+                      <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <input 
+                          type="number" 
+                          class="form-control" 
+                          formControlName="monto"
+                          [class.is-invalid]="paymentForm.get('monto')?.invalid && paymentForm.get('monto')?.touched"
+                          placeholder="50000">
+                      </div>
+                      
+                      <div *ngIf="paymentForm.get('monto')?.errors && paymentForm.get('monto')?.touched" class="text-danger small mt-1">
+                        <div *ngIf="paymentForm.get('monto')?.errors?.['required']">
+                          El monto es requerido
+                        </div>
+                        <div *ngIf="paymentForm.get('monto')?.errors?.['min']">
+                          Mínimo $100 COP
+                        </div>
+                        <div *ngIf="paymentForm.get('monto')?.errors?.['max']">
+                          Máximo $10,000,000 COP
+                        </div>
+                      </div>
+                    </div>
+
+                    <button 
+                      type="submit" 
+                      class="btn btn-primary w-100"
+                      [disabled]="paymentForm.invalid || loading.payment">
+                      <span *ngIf="!loading.payment">
+                        <i class="bi bi-envelope me-2"></i>
+                        Enviar código de confirmación
+                      </span>
+                      <span *ngIf="loading.payment">
+                        <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                        Enviando...
+                      </span>
+                    </button>
+                  </form>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-lg-6">
+              <!-- Confirmar Pago -->
+              <div class="card" *ngIf="sessionId">
+                <div class="card-header bg-white">
+                  <h5 class="card-title mb-0 text-success">
+                    <i class="bi bi-check-circle me-2"></i>
+                    Confirmar pago
+                  </h5>
+                </div>
+                <div class="card-body">
+                  <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i>
+                    Hemos enviado un código de confirmación al correo del destinatario
+                  </div>
+
+                  <div class="mb-3">
+                    <label class="form-label fw-bold">Session ID</label>
+                    <input type="text" class="form-control bg-light" [value]="sessionId" readonly>
+                  </div>
+
+                  <form [formGroup]="confirmForm" (ngSubmit)="onConfirmPayment()">
+                    <div class="mb-4">
+                      <label class="form-label">Código de confirmación</label>
+                      <input 
+                        type="text" 
+                        class="form-control form-control-lg text-center" 
+                        formControlName="token"
+                        [class.is-invalid]="confirmForm.get('token')?.invalid && confirmForm.get('token')?.touched"
+                        placeholder="Ingresa el código">
+                      <div class="invalid-feedback">
+                        El código es requerido
+                      </div>
+                    </div>
+
+                    <button 
+                      type="submit" 
+                      class="btn btn-success w-100"
+                      [disabled]="confirmForm.invalid">
+                      <i class="bi bi-check-lg me-2"></i>
+                      Confirmar pago
+                    </button>
+                  </form>
+                </div>
+              </div>
+
+              <!-- Mensaje cuando no hay pago iniciado -->
+              <div class="card" *ngIf="!sessionId">
+                <div class="card-body text-center py-5">
+                  <i class="bi bi-shield-lock display-1 text-muted mb-3"></i>
+                  <h5>Inicia un pago para continuar</h5>
+                  <p class="text-muted">
+                    Completa el formulario para enviar un código de confirmación
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- History Tab -->
+        <div *ngIf="currentTab === 'history'" class="pt-3">
+          <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+            <h1 class="h2">Historial de Transacciones</h1>
+          </div>
+
+          <div class="card">
+            <div class="card-body">
+              <div class="table-responsive">
+                <table class="table table-hover">
+                  <thead>
+                    <tr>
+                      <th>Fecha</th>
+                      <th>Tipo</th>
+                      <th>Descripción</th>
+                      <th>Monto</th>
+                      <th>Estado</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let transaction of recentTransactions">
+                      <td>{{ transaction.fecha | date:'dd/MM/yyyy HH:mm' }}</td>
+                      <td>
+                        <span class="badge" [ngClass]="transaction.tipo === 'PAGO' ? 'bg-danger' : 'bg-success'">
+                          {{ transaction.tipo }}
+                        </span>
+                      </td>
+                      <td>{{ transaction.descripcion || '-' }}</td>
+                      <td [ngClass]="transaction.tipo === 'PAGO' ? 'text-danger' : 'text-success'">
+                        {{ transaction.tipo === 'PAGO' ? '-' : '+' }}{{ formatCurrency(transaction.monto) }}
+                      </td>
+                      <td>
+                        <span class="badge" [ngClass]="{
+                          'bg-success': transaction.estado === 'EXITOSO',
+                          'bg-warning': transaction.estado === 'PENDIENTE',
+                          'bg-danger': transaction.estado === 'FALLIDO'
+                        }">
+                          {{ transaction.estado }}
+                        </span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Profile Tab -->
+        <div *ngIf="currentTab === 'profile'" class="pt-3">
+          <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+            <h1 class="h2">Mi Perfil</h1>
+          </div>
+
+          <div class="row">
+            <div class="col-12 col-md-4">
+              <div class="card text-center">
+                <div class="card-body">
+                  <div class="profile-avatar mb-3">
+                    <i class="bi bi-person-circle display-1 text-primary"></i>
+                  </div>
+                  <h4>{{ currentUser?.nombre }} {{ currentUser?.apellido }}</h4>
+                  <p class="text-muted">{{ currentUser?.email }}</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-md-8">
+              <div class="card">
+                <div class="card-header bg-white">
+                  <h5 class="card-title mb-0">
+                    <i class="bi bi-info-circle me-2"></i>
+                    Información personal
+                  </h5>
+                </div>
+                <div class="card-body">
+                  <div class="row">
+                    <div class="col-6 mb-3">
+                      <label class="fw-bold">Documento</label>
+                      <p class="form-control-plaintext">{{ currentUser?.documento || 'No registrado' }}</p>
+                    </div>
+                    <div class="col-6 mb-3">
+                      <label class="fw-bold">Teléfono</label>
+                      <p class="form-control-plaintext">{{ currentUser?.telefono || 'No registrado' }}</p>
+                    </div>
+                    <div class="col-12 mb-3">
+                      <label class="fw-bold">Email</label>
+                      <p class="form-control-plaintext">{{ currentUser?.email }}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+</div>
